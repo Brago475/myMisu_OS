@@ -1,12 +1,14 @@
 #include "timer.h"
 #include "idt.h"
 #include "ports.h"
+#include "process.h"
 
 static uint32_t tick = 0;
 
 static void timer_callback(registers_t* regs) {
     (void) regs;
     tick++;
+    process_tick();
 }
 
 void timer_init(uint32_t frequency) {
