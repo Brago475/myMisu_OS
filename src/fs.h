@@ -28,6 +28,8 @@ int fs_write_file(const char* name, const char* data, size_t len);
 int fs_read_file(const char* name, char* buf, size_t max_len);
 int fs_list(const char* dir_name, char* buf, size_t max_len);
 int fs_delete(const char* name);
+int fs_cd(const char* name);
+const char* fs_pwd(void);
 int fs_get_file_count(void);
 int fs_get_dir_count(void);
 fs_node_t* fs_get_node(const char* name);
