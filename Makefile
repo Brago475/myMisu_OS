@@ -5,8 +5,9 @@ LD = i686-elf-gcc
 CFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Isrc
 LDFLAGS = -T linker.ld -ffreestanding -O2 -nostdlib -lgcc
 
-ASM_SRCS = src/boot.s
-C_SRCS = src/kernel.c src/vga.c
+ASM_SRCS = src/boot.s src/gdt_flush.s src/isr.s
+C_SRCS = src/kernel.c src/vga.c src/gdt.c src/idt.c src/timer.c \
+         src/keyboard.c src/string.c src/kprintf.c src/shell.c
 
 ASM_OBJS = $(ASM_SRCS:.s=.o)
 C_OBJS = $(C_SRCS:.c=.o)

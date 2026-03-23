@@ -49,15 +49,7 @@ void terminal_writestring(const char* str);
 void terminal_putchar_color(char c, uint8_t color);
 void terminal_update_cursor(int x, int y);
 
-/* I/O port helpers */
-static inline void outb(uint16_t port, uint8_t val) {
-    asm volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
-}
 
-static inline uint8_t inb(uint16_t port) {
-    uint8_t ret;
-    asm volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port));
-    return ret;
-}
+#include "ports.h"
 
 #endif
