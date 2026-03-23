@@ -5,10 +5,11 @@
 #include "keyboard.h"
 #include "kprintf.h"
 #include "shell.h"
+#include "pmm.h"
+#include "multiboot.h"
 
 void kernel_main(unsigned long magic, unsigned long addr) {
-    (void) magic;
-    (void) addr;
+    multiboot_info_t* mbi = (multiboot_info_t*) addr;
 
     /* Initialize VGA */
     terminal_initialize();
@@ -24,7 +25,7 @@ void kernel_main(unsigned long magic, unsigned long addr) {
     kprintf("         |___/                                  \n");
 
     terminal_setcolor(vga_entry_color(VGA_WHITE, VGA_BLACK));
-    kprintf("\n  MyMisu OS v0.1.0");
+    kprintf("\n  MyMisu OS v0.2.0");
     terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
     kprintf(" - A bare-metal x86 operating system\n\n");
 
@@ -55,6 +56,23 @@ void kernel_main(unsigned long magic, unsigned long addr) {
     kprintf("  [OK] ");
     terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
     kprintf("PS/2 keyboard driver loaded\n");
+
+    /* Initialize physical memory manager */
+    if (magic == 0x2BADB002) {
+        pmm_init(mbi);
+        terminal_setcolor(vga_entry_color(VGA_GREEN, VGA_BLACK));
+        kprintf("  [OK] ");
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
+        kprintf("Physical memory: %d KB total, %d KB free (%d pages)\n",
+                pmm_get_total_memory_kb(),
+                pmm_get_free_pages() * 4,
+                pmm_get_free_pages());
+    } else {
+        terminal_setcolor(vga_entry_color(VGA_YELLOW, VGA_BLACK));
+        kprintf("  [!!] ");
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
+        kprintf("Multiboot magic invalid - PMM skipped\n");
+    }
 
     /* Enable interrupts */
     asm volatile("sti");

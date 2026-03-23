@@ -4,6 +4,7 @@
 #include "kprintf.h"
 #include "string.h"
 #include "timer.h"
+#include "pmm.h"
 
 #define CMD_BUFFER_SIZE 256
 #define MAX_ARGS 16
@@ -22,52 +23,105 @@ static void print_prompt(void) {
 static void cmd_help(void) {
     terminal_setcolor(vga_entry_color(VGA_WHITE, VGA_BLACK));
     kprintf("\n  Available commands:\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("  help     ");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf("- Show this help message\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("  clear    ");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf("- Clear the screen\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("  echo     ");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf("- Echo text back to screen\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("  info     ");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf("- Show system information\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("  time     ");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf("- Show uptime\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("  color    ");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf("- Change colors (usage: color <fg> <bg>)\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("  reboot   ");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf("- Reboot the system\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("  panic    ");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf("- Trigger a kernel panic (test)\n");
+
+    const char* cmds[][2] = {
+        {"help",    "Show this help message"},
+        {"clear",   "Clear the screen"},
+        {"echo",    "Echo text back to screen"},
+        {"info",    "Show system information"},
+        {"meminfo", "Show memory statistics"},
+        {"alloc",   "Allocate a memory page (demo)"},
+        {"free",    "Free a memory page (usage: free <addr>)"},
+        {"time",    "Show uptime"},
+        {"color",   "Change colors (usage: color <fg> <bg>)"},
+        {"reboot",  "Reboot the system"},
+        {"panic",   "Trigger a kernel panic (test)"},
+        {0, 0}
+    };
+
+    for (int i = 0; cmds[i][0]; i++) {
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
+        kprintf("  %-9s", cmds[i][0]);
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
+        kprintf("- %s\n", cmds[i][1]);
+    }
     kprintf("\n");
 }
 
 static void cmd_info(void) {
     terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
-    kprintf("\n  MyMisu OS v0.1.0\n");
+    kprintf("\n  MyMisu OS v0.2.0\n");
     terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
     kprintf("  Architecture:  x86 (i686)\n");
     kprintf("  Display:       VGA text mode 80x25\n");
     kprintf("  Keyboard:      PS/2 (US QWERTY)\n");
     kprintf("  Timer:         PIT at 100 Hz\n");
+    kprintf("  Memory:        %d KB total, %d KB free\n",
+            pmm_get_total_memory_kb(), pmm_get_free_pages() * 4);
     kprintf("  Built with:    GCC 13.2.0 (i686-elf)\n");
     kprintf("  Built by:      James Mardi, Danny + AI\n");
     kprintf("\n");
+}
+
+static void cmd_meminfo(void) {
+    uint32_t total = pmm_get_total_pages();
+    uint32_t used = pmm_get_used_pages();
+    uint32_t free_p = pmm_get_free_pages();
+
+    terminal_setcolor(vga_entry_color(VGA_WHITE, VGA_BLACK));
+    kprintf("\n  Memory Statistics:\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
+    kprintf("  Total memory:  %d KB (%d MB)\n", total * 4, total * 4 / 1024);
+    kprintf("  Total pages:   %d (4 KB each)\n", total);
+
+    terminal_setcolor(vga_entry_color(VGA_GREEN, VGA_BLACK));
+    kprintf("  Free pages:    %d (%d KB)\n", free_p, free_p * 4);
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_RED, VGA_BLACK));
+    kprintf("  Used pages:    %d (%d KB)\n", used, used * 4);
+
+    /* Visual bar */
+    terminal_setcolor(vga_entry_color(VGA_WHITE, VGA_BLACK));
+    kprintf("  Usage:         [");
+    uint32_t bar_width = 40;
+    uint32_t filled = (total > 0) ? (used * bar_width / total) : 0;
+    for (uint32_t i = 0; i < bar_width; i++) {
+        if (i < filled) {
+            terminal_setcolor(vga_entry_color(VGA_LIGHT_RED, VGA_BLACK));
+            kprintf("#");
+        } else {
+            terminal_setcolor(vga_entry_color(VGA_GREEN, VGA_BLACK));
+            kprintf("-");
+        }
+    }
+    terminal_setcolor(vga_entry_color(VGA_WHITE, VGA_BLACK));
+    uint32_t pct = (total > 0) ? (used * 100 / total) : 0;
+    kprintf("] %d%%\n\n", pct);
+}
+
+static void cmd_alloc(void) {
+    uint32_t addr = pmm_alloc_page();
+    if (addr) {
+        terminal_setcolor(vga_entry_color(VGA_GREEN, VGA_BLACK));
+        kprintf("  Allocated page at 0x%x (%d KB)\n", addr, addr / 1024);
+    } else {
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_RED, VGA_BLACK));
+        kprintf("  Out of memory!\n");
+    }
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
+}
+
+static void cmd_free(int argc, char** argv) {
+    if (argc < 2) {
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
+        kprintf("  Usage: free <address_in_decimal>\n");
+        kprintf("  (Use 'alloc' first to get an address)\n");
+        return;
+    }
+    uint32_t addr = (uint32_t) atoi(argv[1]);
+    pmm_free_page(addr);
+    terminal_setcolor(vga_entry_color(VGA_GREEN, VGA_BLACK));
+    kprintf("  Freed page at 0x%x\n", addr);
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
 }
 
 static void cmd_time(void) {
@@ -75,7 +129,6 @@ static void cmd_time(void) {
     uint32_t seconds = ticks / 100;
     uint32_t minutes = seconds / 60;
     seconds = seconds % 60;
-
     terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
     kprintf("\n  Uptime: %d min %d sec (%d ticks)\n\n", minutes, seconds, ticks);
 }
@@ -112,29 +165,25 @@ static void cmd_color(int argc, char** argv) {
 static void cmd_reboot(void) {
     terminal_setcolor(vga_entry_color(VGA_YELLOW, VGA_BLACK));
     kprintf("\n  Rebooting...\n");
-    /* Triple fault: load null IDT and trigger interrupt */
     struct { uint16_t limit; uint32_t base; } __attribute__((packed)) null_idt = {0, 0};
     asm volatile ("lidt %0" : : "m"(null_idt));
     asm volatile ("int $0x03");
 }
 
 static void cmd_panic(void) {
-    /* Trigger division by zero */
     volatile int x = 0;
     volatile int y = 1 / x;
     (void) y;
 }
 
 static void execute_command(char* input) {
-    /* Parse into argv */
     char* argv[MAX_ARGS];
     int argc = 0;
-
     char* token = input;
+
     while (*token && argc < MAX_ARGS) {
         while (*token == ' ') token++;
         if (*token == '\0') break;
-
         argv[argc++] = token;
         while (*token && *token != ' ') token++;
         if (*token) { *token = '\0'; token++; }
@@ -142,11 +191,13 @@ static void execute_command(char* input) {
 
     if (argc == 0) return;
 
-    /* Dispatch */
     if (strcmp(argv[0], "help") == 0) cmd_help();
-    else if (strcmp(argv[0], "clear") == 0) { terminal_clear(); }
+    else if (strcmp(argv[0], "clear") == 0) terminal_clear();
     else if (strcmp(argv[0], "echo") == 0) cmd_echo(argc, argv);
     else if (strcmp(argv[0], "info") == 0) cmd_info();
+    else if (strcmp(argv[0], "meminfo") == 0) cmd_meminfo();
+    else if (strcmp(argv[0], "alloc") == 0) cmd_alloc();
+    else if (strcmp(argv[0], "free") == 0) cmd_free(argc, argv);
     else if (strcmp(argv[0], "time") == 0) cmd_time();
     else if (strcmp(argv[0], "color") == 0) cmd_color(argc, argv);
     else if (strcmp(argv[0], "reboot") == 0) cmd_reboot();
@@ -171,10 +222,8 @@ void shell_run(void) {
         print_prompt();
         cmd_len = 0;
 
-        /* Read a line */
         while (1) {
             char c = keyboard_getchar();
-
             if (c == '\n') {
                 terminal_putchar('\n');
                 cmd_buffer[cmd_len] = '\0';
