@@ -3,12 +3,24 @@
 #include "ports.h"
 #include "process.h"
 
+#define TIME_SLICE_TICKS 10  /* 10 ticks * 10ms = 100ms per slice */
+
 static uint32_t tick = 0;
+static uint32_t slice_counter = 0;
 
 static void timer_callback(registers_t* regs) {
     (void) regs;
     tick++;
+    slice_counter++;
     process_tick();
+
+    /* Every TIME_SLICE_TICKS, run the scheduler to preempt. */
+    if (slice_counter >= TIME_SLICE_TICKS) {
+        slice_counter = 0;
+        if (process_is_scheduling_enabled()) {
+            schedule();
+        }
+    }
 }
 
 void timer_init(uint32_t frequency) {

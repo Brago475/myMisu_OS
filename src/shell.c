@@ -188,7 +188,76 @@ static void cmd_edit(int argc,char** argv){
 
 /* ===== PROCESS COMMANDS ===== */
 static void cmd_ps(void){process_t* t=process_get_table();terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));kprintf("\n  PID  STATE    NAME\n");terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));kprintf("  ---  ------   ----\n");const char* sn[]={"----","RUN ","WAIT","BLCK","DEAD"};for(int i=0;i<MAX_PROCESSES;i++){if(t[i].in_use){terminal_setcolor(vga_entry_color(t[i].state==PROC_RUNNING?VGA_LIGHT_GREEN:VGA_LIGHT_GREY,VGA_BLACK));kprintf("  %d    %s     %s\n",t[i].pid,sn[t[i].state],t[i].name);}}terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("\n");}
-static void cmd_spawn(int argc,char** argv){if(argc<2){kprintf("  Usage: spawn <n>\n");return;}int p=process_create(argv[1],5);if(p>=0){terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  PID %d: %s\n",p,argv[1]);}else{terminal_setcolor(vga_entry_color(VGA_LIGHT_RED,VGA_BLACK));kprintf("  Failed\n");}terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));}
+/* ===== Phase 2 demo kernel tasks =====
+ * Tasks print to the shell area but throttled so they don't
+ * overwhelm input. Each prints once per ~2 seconds.
+ */
+
+static void demo_counter_task(void){
+    int n=0;
+    process_sleep(3000);
+    while(1){
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
+        kprintf("\n[counter pid=%d n=%d]\n",sys_getpid(),n++);
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+        process_sleep(200);
+    }
+}
+
+static void demo_spinner_task(void){
+    int i=0;
+    process_sleep(3000);
+    while(1){
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_MAGENTA,VGA_BLACK));
+        kprintf("\n[spinner pid=%d frame=%d]\n",sys_getpid(),i++);
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+        process_sleep(250);
+    }
+}
+
+static void demo_ticker_task(void){
+    while(1){
+        terminal_setcolor(vga_entry_color(VGA_YELLOW,VGA_BLACK));
+        kprintf("\n[ticker pid=%d uptime=%d]\n",sys_getpid(),sys_uptime());
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+        process_sleep(300);
+    }
+}
+
+static void cmd_spawn(int argc,char** argv){
+    if(argc<2){
+        kprintf("  Usage: spawn <name>\n");
+        kprintf("  Available: counter, spinner, ticker, all\n");
+        return;
+    }
+    int pid=-1;
+    if(strcmp(argv[1],"counter")==0)      pid=process_create_kernel("counter",demo_counter_task);
+    else if(strcmp(argv[1],"spinner")==0) pid=process_create_kernel("spinner",demo_spinner_task);
+    else if(strcmp(argv[1],"ticker")==0)  pid=process_create_kernel("ticker",demo_ticker_task);
+    else if(strcmp(argv[1],"all")==0){
+        process_create_kernel("counter",demo_counter_task);
+        process_create_kernel("spinner",demo_spinner_task);
+        pid=process_create_kernel("ticker",demo_ticker_task);
+    }
+    else{
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_RED,VGA_BLACK));
+        kprintf("  Unknown task: %s\n",argv[1]);
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+        return;
+    }
+    if(pid>=0){
+        terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));
+        kprintf("  Spawned PID %d. Use 'kill <pid>' to stop. Run 'ps' to see state.\n",pid);
+    }else{
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_RED,VGA_BLACK));
+        kprintf("  Failed to spawn\n");
+    }
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+}
+
+
+
+
 static void cmd_kill(int argc,char** argv){if(argc<2){kprintf("  Usage: kill <pid>\n");return;}uint32_t p=(uint32_t)atoi(argv[1]);if(p<=1){terminal_setcolor(vga_entry_color(VGA_LIGHT_RED,VGA_BLACK));kprintf("  Protected!\n");}else{process_terminate(p);terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  Killed %d\n",p);}terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));}
 static void cmd_syscall_demo(void){
     char buf[64]; int32_t r; int fd;

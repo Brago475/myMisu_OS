@@ -52,5 +52,6 @@ void kernel_main(unsigned long magic, unsigned long addr) {
     terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  [OK] ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Memory: %d KB (%d pages free)\n",pmm_get_total_memory_kb(),pmm_get_free_pages());
     terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  [OK] ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Ramdisk: %d files, %d dirs\n",fs_get_file_count(),fs_get_dir_count());
 
+    process_set_scheduling_enabled(true);
     shell_run();
 }
