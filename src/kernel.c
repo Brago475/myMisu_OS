@@ -10,6 +10,7 @@
 #include "syscall.h"
 #include "fs.h"
 #include "process.h"
+#include "version.h"
 
 void kernel_main(unsigned long magic, unsigned long addr) {
     multiboot_info_t* mbi = (multiboot_info_t*) addr;
@@ -44,7 +45,7 @@ void kernel_main(unsigned long magic, unsigned long addr) {
     kprintf("                 (_,..'(_,.`__)  \n");
 
     terminal_setcolor(vga_entry_color(VGA_WHITE, VGA_BLACK));
-    kprintf("\n  v0.5.0");
+    kprintf("\n  %s",MYMISU_VERSION);
     terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
     kprintf(" | bare-metal x86 | Built with AI\n\n");
 

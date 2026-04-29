@@ -3,6 +3,7 @@
 #include "string.h"
 #include "timer.h"
 #include "kprintf.h"
+#include "version.h"
 
 static fs_node_t fs_nodes[FS_MAX_FILES];
 static fs_fd_t fs_fd_table[FS_MAX_FDS];
@@ -28,7 +29,7 @@ void fs_init(void) {
     fs_create_file("hostname");
     fs_write_file("hostname", "misu-pc", 7);
     fs_create_file("version");
-    fs_write_file("version", "MyMisu OS v2.0.0", 16);
+    fs_write_file("version", "MyMisu OS " MYMISU_VERSION, strlen("MyMisu OS " MYMISU_VERSION));
 }
 
 static int find_free_node(void) {

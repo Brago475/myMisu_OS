@@ -118,17 +118,17 @@ int process_create_kernel(const char* name, void (*fn)(void)) {
     return (int)proc_table[slot].pid;
 }
 
-void process_terminate(uint32_t pid) {
+int process_terminate(uint32_t pid) {
     int slot = find_slot_by_pid(pid);
-    if (slot < 0 || pid <= 1) return;
+    if (slot < 0 || pid <= 1) return -1;
     proc_table[slot].state = PROC_TERMINATED;
     proc_table[slot].in_use = 0;
     if (proc_table[slot].kstack) {
         pmm_free_page((uint32_t)proc_table[slot].kstack);
         proc_table[slot].kstack = 0;
     }
+    return 0;
 }
-
 uint32_t process_get_current_pid(void) { return current_pid; }
 
 process_t* process_get_table(void) { return proc_table; }

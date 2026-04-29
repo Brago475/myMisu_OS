@@ -37,7 +37,7 @@ typedef struct {
 void process_init(void);
 int process_create(const char* name, uint32_t priority);
 int process_create_kernel(const char* name, void (*fn)(void));
-void process_terminate(uint32_t pid);
+int process_terminate(uint32_t pid);
 uint32_t process_get_current_pid(void);
 process_t* process_get_table(void);
 process_t* process_get_current(void);

@@ -19,7 +19,10 @@ ISO = build/mymisu.iso
 
 .PHONY: all clean run debug
 
-all: $(ISO)
+all: gen_version $(ISO)
+
+gen_version:
+	@./gen_version.sh
 
 %.o: %.s
 	$(AS) $< -o $@
