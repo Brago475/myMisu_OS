@@ -8,8 +8,6 @@
 #include "fs.h"
 #include "process.h"
 #include "syscall.h"
-#include "errno.h"
-#include "fs.h"
 #include "ports.h"
 
 #define CMD_BUFFER_SIZE 256
@@ -190,55 +188,7 @@ static void cmd_edit(int argc,char** argv){
 static void cmd_ps(void){process_t* t=process_get_table();terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));kprintf("\n  PID  STATE    NAME\n");terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));kprintf("  ---  ------   ----\n");const char* sn[]={"----","RUN ","WAIT","BLCK","DEAD"};for(int i=0;i<MAX_PROCESSES;i++){if(t[i].in_use){terminal_setcolor(vga_entry_color(t[i].state==PROC_RUNNING?VGA_LIGHT_GREEN:VGA_LIGHT_GREY,VGA_BLACK));kprintf("  %d    %s     %s\n",t[i].pid,sn[t[i].state],t[i].name);}}terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("\n");}
 static void cmd_spawn(int argc,char** argv){if(argc<2){kprintf("  Usage: spawn <n>\n");return;}int p=process_create(argv[1],5);if(p>=0){terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  PID %d: %s\n",p,argv[1]);}else{terminal_setcolor(vga_entry_color(VGA_LIGHT_RED,VGA_BLACK));kprintf("  Failed\n");}terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));}
 static void cmd_kill(int argc,char** argv){if(argc<2){kprintf("  Usage: kill <pid>\n");return;}uint32_t p=(uint32_t)atoi(argv[1]);if(p<=1){terminal_setcolor(vga_entry_color(VGA_LIGHT_RED,VGA_BLACK));kprintf("  Protected!\n");}else{process_terminate(p);terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  Killed %d\n",p);}terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));}
-static void cmd_syscall_demo(void){
-    char buf[64]; int32_t r; int fd;
-    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));
-    kprintf("\n  Syscall Test Suite (19 calls via int 0x80)\n");
-    kprintf("  ------------------------------------------\n");
-
-    #define PASS_FAIL(cond) do { \
-        if (cond) { terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK)); kprintf("PASS\n"); } \
-        else      { terminal_setcolor(vga_entry_color(VGA_LIGHT_RED,VGA_BLACK));   kprintf("FAIL\n"); } \
-        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK)); \
-    } while(0)
-
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
-    kprintf("  [I/O]\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
-    kprintf("  write(STDOUT)..."); r=sys_write(1,"hi\n",3); PASS_FAIL(r==3);
-    kprintf("  write(STDERR)..."); r=sys_write(2,"er\n",3); PASS_FAIL(r==3);
-    kprintf("  uptime()........"); r=sys_uptime(); PASS_FAIL(r>=0);
-    kprintf("  getpid()........"); r=sys_getpid(); PASS_FAIL(r>=0);
-
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
-    kprintf("  [FILESYSTEM]\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
-    kprintf("  mkdir(t1)......."); r=sys_mkdir("t1"); PASS_FAIL(r==0);
-    kprintf("  rmdir(t1)......."); r=sys_rmdir("t1"); PASS_FAIL(r==0);
-    kprintf("  open(O_CREAT)..."); fd=sys_open("sctest",O_CREAT|O_RDWR); PASS_FAIL(fd>=3);
-    kprintf("  write(fd)......."); r=sys_write(fd,"abc",3); PASS_FAIL(r==3);
-    kprintf("  lseek(SEEK_SET)."); r=sys_lseek(fd,0,SEEK_SET); PASS_FAIL(r==0);
-    kprintf("  read(fd)........"); r=sys_read(fd,buf,3); buf[3]=0; PASS_FAIL(r==3);
-    kprintf("  close(fd)......."); r=sys_close(fd); PASS_FAIL(r==0);
-    kprintf("  stat(sctest)...."); { fs_stat_t st; r=sys_stat("sctest",&st); PASS_FAIL(r==0&&st.size==3); }
-    kprintf("  unlink(sctest).."); r=sys_unlink("sctest"); PASS_FAIL(r==0);
-    kprintf("  getcwd().......:"); r=sys_getcwd(buf,sizeof(buf)); kprintf(" %s ",buf); PASS_FAIL(r>0);
-
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
-    kprintf("  [PROCESS]\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
-    kprintf("  yield()........."); r=sys_yield(); PASS_FAIL(r==0);
-    kprintf("  fork() (stub)..."); r=sys_fork(); PASS_FAIL(r==-ENOSYS);
-    kprintf("  execve() (stub)."); r=sys_execve("x"); PASS_FAIL(r==-ENOSYS);
-    kprintf("  waitpid() (stub)"); r=sys_waitpid(0); PASS_FAIL(r==-ENOSYS);
-    kprintf("  kill(invalid).."); r=sys_kill(0); PASS_FAIL(r==-EPERM);
-
-    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));
-    kprintf("\n  19 syscalls exercised.\n\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
-    #undef PASS_FAIL
-}
-
+static void cmd_syscall_demo(void){terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));kprintf("\n  Syscall Demo:\n");terminal_setcolor(vga_entry_color(VGA_YELLOW,VGA_BLACK));kprintf("  write(1,\"Hi!\",4)=");int32_t r=sys_write(1,"Hi!\n",4);terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("  -> %d\n",r);terminal_setcolor(vga_entry_color(VGA_YELLOW,VGA_BLACK));kprintf("  write(2,\"Err\",4)=");r=sys_write(2,"Err\n",4);terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("  -> %d\n",r);terminal_setcolor(vga_entry_color(VGA_YELLOW,VGA_BLACK));kprintf("  mkdir(\"test\")=");r=sys_mkdir("test");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("%d\n",r);terminal_setcolor(vga_entry_color(VGA_YELLOW,VGA_BLACK));kprintf("  getpid()=");r=sys_getpid();terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("%d\n",r);terminal_setcolor(vga_entry_color(VGA_YELLOW,VGA_BLACK));kprintf("  uptime()=");r=sys_uptime();terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("%d ticks\n\n",r);}
 
 /* ===== APPS ===== */
 static void cmd_calc(int argc,char** argv){if(argc<4){kprintf("  calc <n> <op> <n>\n");return;}int a=atoi(argv[1]),b=atoi(argv[3]),r=0,ok=1;char op=argv[2][0];switch(op){case'+':r=a+b;break;case'-':r=a-b;break;case'*':r=a*b;break;case'/':if(b==0){kprintf("  /0!\n");return;}r=a/b;break;default:ok=0;}if(ok){terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("  %d %c %d = %d\n",a,op,b,r);}else kprintf("  Bad op\n");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));}
