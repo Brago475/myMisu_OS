@@ -27,31 +27,59 @@ void kernel_main(unsigned long magic, unsigned long addr) {
     asm volatile("sti");
 
     login_screen();
+    terminal_clear();
+    /* Title */
+    kprintf("\n\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
+    kprintf("                              MyMisu OS\n");
+    terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+    kprintf("                    bare-metal x86 operating system\n\n");
 
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN, VGA_BLACK));
+    /* System status block */
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
+    kprintf("  +--------------------------------------------------------------+\n");
+    kprintf("  |  System Status                                               |\n");
+    kprintf("  +--------------------------------------------------------------+\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("     [OK]  ");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("GDT loaded\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("     [OK]  ");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("IDT installed (256 vectors, PIC remapped to 32-47)\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("     [OK]  ");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Timer @ 100Hz (PIT 8253)\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("     [OK]  ");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("PS/2 keyboard ready\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("     [OK]  ");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Memory       %d KB (%d free pages)\n",pmm_get_total_memory_kb(),pmm_get_free_pages());
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("     [OK]  ");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Ramdisk      %d files, %d dirs (16 fds available)\n",fs_get_file_count(),fs_get_dir_count());
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("     [OK]  ");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Syscalls     19 registered (int 0x80)\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREEN,VGA_BLACK));kprintf("     [OK]  ");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Scheduler    round-robin, 100ms slice (preemptive)\n");
+
+    /* Cat at bottom center */
     kprintf("\n");
-    kprintf("  __  __       __  __ _              ___  ____  \n");
-    kprintf(" |  \\/  |_   _|  \\/  (_)___ _   _  / _ \\/ ___| \n");
-    kprintf(" | |\\/| | | | | |\\/| | / __| | | || | | \\___ \\ \n");
-    kprintf(" | |  | | |_| | |  | | \\__ \\ |_| || |_| |___) |\n");
-    kprintf(" |_|  |_|\\__, |_|  |_|_|___/\\__,_| \\___/|____/ \n");
-    kprintf("         |___/\n\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
+    kprintf("                          |\\---/|\n");
+    kprintf("                          | ,_, |\n");
+    kprintf("                           \\_`_/-..--.\n");
+    kprintf("                        ___/ `   \' ,+ \\\n");
+    kprintf("                       (__...\'  _/  |`._;\n");
+    kprintf("                         (_,..\'(_,.`__)\n");
 
-    kprintf("                  |\\---/|\n");
-    kprintf("                  | ,_, |\n");
-    kprintf("                   \\_`_/-..--.  \n");
-    kprintf("                ___/ `   ' ,+ \\\n");
-    kprintf("               (__...'  _/  |`._;  \n");
-    kprintf("                 (_,..'(_,.`__)  \n");
-
-    terminal_setcolor(vga_entry_color(VGA_WHITE, VGA_BLACK));
-    kprintf("\n  %s",MYMISU_VERSION);
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
-    kprintf(" | bare-metal x86 | Built with AI\n\n");
-
-    terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  [OK] ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("All systems initialized\n");
-    terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  [OK] ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Memory: %d KB (%d pages free)\n",pmm_get_total_memory_kb(),pmm_get_free_pages());
-    terminal_setcolor(vga_entry_color(VGA_GREEN,VGA_BLACK));kprintf("  [OK] ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Ramdisk: %d files, %d dirs\n",fs_get_file_count(),fs_get_dir_count());
+    /* Version bottom right */
+    terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+    kprintf("\n                                                         %s\n", MYMISU_VERSION);
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
 
     process_set_scheduling_enabled(true);
     shell_run();
