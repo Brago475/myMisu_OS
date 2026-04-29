@@ -33,9 +33,7 @@ Named after Misu, a cat.
 
 Download mymisu.iso from the Releases page.
 
-Run in QEMU:
-qemu-system-i386 -cdrom mymisu.iso -m 128M
-
+Run in QEMU:qemu-system-i386 -cdrom mymisu.iso -m 128M
 Boot on real hardware: flash the ISO to a USB drive with Rufus, then boot from USB.
 
 Login: misu / misu (or admin / admin, or james / 1234)
@@ -84,22 +82,27 @@ Run the syscall command from the shell to see all 19 fire with PASS/FAIL output.
 
 Ramdisk filesystem, up to 64 nodes (files or directories), 4 KB max per file.
 
-POSIX-style fd-based API in v2.0.0:
-int fd = fs_open("notes.txt", O_CREAT | O_WRONLY);
+POSIX-style fd-based API in v2.0.0:int fd = fs_open("notes.txt", O_CREAT | O_WRONLY);
 fs_write_fd(fd, "hello", 5);
-fs_close(fd);
-Version is auto-generated from git commit count by gen_version.sh on every build.
+fs_close(fd);16-entry file descriptor table with auto-incrementing offsets and seek semantics.
 
 ---
 
-## Project Info
+## Memory Management
 
-- Course: CPS 5520 Computer System and Concepts
-- Semester: Spring 2026
-- Instructor: Juan Li
-- Team: James Mardi, Danny Munoz, Kyle Humlen
-- AI Tool: Claude (Anthropic)
+Bitmap allocator, one bit per 4 KB page. Parses Multiboot memory map at boot. The scheduler uses pmm_alloc_page to allocate per-process kernel stacks.
 
----/\_/\
-  ( o.o )
-   > ^MyMisu OS v2.0.0, built from nothing, boots on everything.
+---
+
+## Building from Source
+
+Requirements: i686-elf-gcc cross-compiler, nasm, qemu-system-i386, grub-mkrescue, xorriso.make            # build ISO
+make run        # boot in QEMU
+make clean      # remove build artifactsVersion is auto-generated from git commit count by gen_version.sh on every build.
+
+---|\---/|
+              | ,_, |
+               \_`_/-..--.
+            ___/ `   ' ,+ \
+           (__...'  _/  |`._;
+             (_,..'(_,.`__)MyMisu OS v2.0.0, built from nothing, boots on everything.
