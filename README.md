@@ -92,17 +92,27 @@ fs_close(fd);16-entry file descriptor table with auto-incrementing offsets and s
 
 Bitmap allocator, one bit per 4 KB page. Parses Multiboot memory map at boot. The scheduler uses pmm_alloc_page to allocate per-process kernel stacks.
 
----
-
 ## Building from Source
 
-Requirements: i686-elf-gcc cross-compiler, nasm, qemu-system-i386, grub-mkrescue, xorriso.make            # build ISO
-make run        # boot in QEMU
-make clean      # remove build artifactsVersion is auto-generated from git commit count by gen_version.sh on every build.
+Requirements: i686-elf-gcc cross-compiler, nasm, qemu-system-i386, grub-mkrescue, xorriso.
 
----|\---/|
-              | ,_, |
-               \_`_/-..--.
-            ___/ `   ' ,+ \
-           (__...'  _/  |`._;
-             (_,..'(_,.`__)MyMisu OS v2.0.0, built from nothing, boots on everything.
+```bash
+make            # build ISO
+make run        # boot in QEMU
+make clean      # remove build artifacts
+```
+
+Version is auto-generated from git commit count by gen_version.sh on every build.
+
+---
+
+```
+                  |\---/|
+                  | ,_, |
+                   \_`_/-..--.
+                ___/ `   ' ,+ \
+               (__...'  _/  |`._;
+                 (_,..'(_,.`__)
+```
+
+MyMisu OS v2.0.0, built from nothing, boots on everything.
