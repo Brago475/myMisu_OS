@@ -9,6 +9,7 @@
 #include "process.h"
 #include "syscall.h"
 #include "version.h"
+#include "klog.h"
 #include "errno.h"
 #include "fs.h"
 #include "ports.h"
@@ -59,6 +60,8 @@ static void cmd_filebrowser(void);
 static void cmd_reader(void);
 static void cmd_sysmon(void);
 static void cmd_top(void);
+static void cmd_tree(void);
+static void cmd_dmesg(void);
 static void cmd_history_show(void);
 static void cmd_halt(void);
 static void cmd_reboot(void);
@@ -117,6 +120,7 @@ static void cmd_help(void){
     kprintf("    edit      Open text editor:  edit <file>\n");
     kprintf("    mkdir     Create directory:  mkdir <name>\n");
     kprintf("    rm        Delete file or empty dir:  rm <name>\n");
+    kprintf("    tree      Show filesystem as a tree\n");
 
     terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("\n  PROCESSES\n");
     terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
@@ -127,6 +131,7 @@ static void cmd_help(void){
     kprintf("    kill      Stop a process:  kill <pid>\n");
     kprintf("    meminfo   Show memory usage details\n");
     kprintf("    syscall   Run all 19 syscalls and report PASS/FAIL\n");
+    kprintf("    dmesg     Show kernel log buffer\n");
 
     terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("\n  APPS\n");
     terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
@@ -477,6 +482,63 @@ static void cmd_reader(void){
     }terminal_clear();
 }
 
+static void cmd_dmesg(void){
+    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));
+    kprintf("\n  Kernel Log Buffer  (%d entries)\n", klog_count());
+    terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+    kprintf("  ----------------------------------------\n");
+    klog_print();
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+    kprintf("\n");
+}
+
+/* Recursive tree printer. dir_idx is the inode to print children of. */
+static void tree_print_recurse(int dir_idx, int depth, fs_node_t* nodes){
+    for(int i=0;i<FS_MAX_FILES;i++){
+        if(!nodes[i].in_use) continue;
+        if(nodes[i].parent != dir_idx) continue;
+        if(i == 0) continue;  /* skip root */
+
+        /* Indent */
+        for(int d=0;d<depth;d++) kprintf("    ");
+
+        /* Tree connector */
+        terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+        kprintf("|-- ");
+
+        /* Name colored by type */
+        if(nodes[i].type == FS_TYPE_DIR){
+            terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
+            kprintf("%s/\n", nodes[i].name);
+            tree_print_recurse(i, depth+1, nodes);
+        } else {
+            terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+            kprintf("%s", nodes[i].name);
+            terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+            kprintf("  (%d bytes)\n", nodes[i].size);
+        }
+    }
+}
+
+static void cmd_tree(void){
+    /* Find root via fs_get_node trick - use fs internal table */
+    /* We use the fact that fs_nodes is indexed and root is at 0 */
+    /* Need access to the static array - so we walk by checking parent==0 from fs_get_node */
+    /* Simpler: get nodes via a helper. But we don't have one. So use fs_get_node for each name. */
+
+    /* Actually we have fs_node_t* fs_get_node which only returns by name. We need the table. */
+    /* For tonight, walk all 64 slots through a public accessor. */
+
+    extern fs_node_t* fs_get_table_ptr(void);  /* forward decl - we add this to fs */
+    fs_node_t* nodes = fs_get_table_ptr();
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));
+    kprintf("\n  /\n");
+    tree_print_recurse(0, 1, nodes);
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+    kprintf("\n");
+}
+
 /* ===== Phase 3: live top command ===== */
 
 /* Helpers since kprintf has no %-Nd or %-Ns padding */
@@ -769,7 +831,7 @@ static void execute_command(char* input){
     else if(strcmp(argv[0],"menu")==0)cmd_menu();
     else if(strcmp(argv[0],"files")==0)cmd_filebrowser();
     else if(strcmp(argv[0],"reader")==0)cmd_reader();
-    else if(strcmp(argv[0],"top")==0)cmd_top();
+    else if(strcmp(argv[0],"top")==0)cmd_top();else if(strcmp(argv[0],"tree")==0)cmd_tree();else if(strcmp(argv[0],"dmesg")==0)cmd_dmesg();
     else if(strcmp(argv[0],"sysmon")==0)cmd_sysmon();
     else if(strcmp(argv[0],"widgets")==0)cmd_widgets();
     else if(strcmp(argv[0],"reboot")==0)cmd_reboot();

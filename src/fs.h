@@ -65,6 +65,7 @@ const char* fs_pwd(void);
 int fs_get_file_count(void);
 int fs_get_dir_count(void);
 fs_node_t* fs_get_node(const char* name);
+fs_node_t* fs_get_table_ptr(void);
 
 /* ---------- New POSIX-style fd-based API ----------
  * All return >= 0 on success or a negative errno on failure.

@@ -299,3 +299,6 @@ int fs_getcwd(char* buf, size_t n) {
     memcpy(buf, name, len + 1);
     return (int)len;
 }
+
+fs_node_t* fs_get_table_ptr(void) { return fs_nodes; }
+

@@ -11,19 +11,28 @@
 #include "fs.h"
 #include "process.h"
 #include "version.h"
+#include "klog.h"
 
 void kernel_main(unsigned long magic, unsigned long addr) {
     multiboot_info_t* mbi = (multiboot_info_t*) addr;
     terminal_initialize();
+    klog_init();
 
     gdt_init();
+    klog(KLOG_OK, "GDT loaded - 5 segments");
     idt_init();
+    klog(KLOG_OK, "IDT installed - 256 vectors, PIC remapped to 32-47");
     syscall_init();
+    klog(KLOG_OK, "Syscalls registered - 19 calls via int 0x80");
     process_init();
+    klog(KLOG_OK, "Process subsystem initialized - 16 slots");
     timer_init(100);
+    klog(KLOG_OK, "Timer started - PIT 8253 at 100Hz");
     keyboard_init();
+    klog(KLOG_OK, "PS/2 keyboard ready");
     if (magic == 0x2BADB002) pmm_init(mbi);
     fs_init();
+    klog(KLOG_OK, "Ramdisk filesystem mounted");
     asm volatile("sti");
 
     login_screen();
@@ -82,5 +91,6 @@ void kernel_main(unsigned long magic, unsigned long addr) {
     terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
 
     process_set_scheduling_enabled(true);
+    klog(KLOG_OK, "Scheduler online - round-robin preemptive 100ms");
     shell_run();
 }

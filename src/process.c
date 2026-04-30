@@ -2,6 +2,7 @@
 #include "string.h"
 #include "timer.h"
 #include "pmm.h"
+#include "klog.h"
 
 static process_t proc_table[MAX_PROCESSES];
 static uint32_t current_pid = 0;
@@ -115,6 +116,7 @@ int process_create_kernel(const char* name, void (*fn)(void)) {
     for (int i = 0; i < 8; i++) *(--sp) = 0;
     proc_table[slot].saved_esp = (uint32_t)sp;
 
+    klog(KLOG_INFO, "process spawned");
     return (int)proc_table[slot].pid;
 }
 
@@ -123,6 +125,7 @@ int process_terminate(uint32_t pid) {
     if (slot < 0 || pid <= 1) return -1;
     proc_table[slot].state = PROC_TERMINATED;
     proc_table[slot].in_use = 0;
+    klog(KLOG_INFO, "process terminated");
     if (proc_table[slot].kstack) {
         pmm_free_page((uint32_t)proc_table[slot].kstack);
         proc_table[slot].kstack = 0;
