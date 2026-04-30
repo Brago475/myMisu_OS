@@ -113,6 +113,23 @@ Version is auto-generated from git commit count by gen_version.sh on every build
                 ___/ `   ' ,+ \
                (__...'  _/  |`._;
                  (_,..'(_,.`__)
+
+---
+
+## Team
+
+- James Mardi
+- Danny Munoz
+- Kyle Humlen
+
+## Course
+
+CPS 5520 - Computer Systems and Concepts
+Spring 2026, Section 02
+Instructor: Juan Li
+Kean University
+
+
 ```
 
 MyMisu OS v2.0.0, built from nothing, boots on everything.

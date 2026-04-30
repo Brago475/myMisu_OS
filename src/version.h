@@ -5,8 +5,8 @@
  * Version is derived from git commit count.
  */
 
-#define MYMISU_VERSION  "v2.0.5"
-#define MYMISU_GIT_SHA  "834d194"
-#define MYMISU_BUILD    "v2.0.5 (834d194)"
+#define MYMISU_VERSION  "v2.0.6"
+#define MYMISU_GIT_SHA  "38bcdbe"
+#define MYMISU_BUILD    "v2.0.6 (38bcdbe)"
 
 #endif
