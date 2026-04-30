@@ -28,6 +28,7 @@ static int history_pos = -1;
 
 /* Forward declarations */
 static void cmd_help(void);
+static void cmd_colors(void);
 static void cmd_neofetch(void);
 static void cmd_info(void);
 static void cmd_meminfo(void);
@@ -87,28 +88,104 @@ static void print_prompt(void){
 /* ===== HELP ===== */
 static void cmd_help(void){
     terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));
-    kprintf("\n  === General ===\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  help      ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Show this help\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  clear     ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Clear screen\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  echo      ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Echo text\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  info      ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("System info\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  neofetch  ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("ASCII art sysinfo\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  version   ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Version\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  date      ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Date/time\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  time      ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Uptime\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  color     ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Change colors\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  history   ");terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));kprintf("Command history\n");
-    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));kprintf("\n  === Files ===\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  ls pwd cd cat touch write edit mkdir rm\n");
-    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));kprintf("\n  === System ===\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  ps spawn kill meminfo alloc syscall\n");
-    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));kprintf("\n  === Apps ===\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  calc note cowsay menu files reader sysmon\n");
-    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));kprintf("\n  === Games ===\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  game snake ttt ttt2 hangman rps pong\n");
-    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));kprintf("\n  === Power ===\n");
-    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("  reboot shutdown exit panic\n\n");
+    kprintf("\n  MyMisu OS  -  Command Reference\n");
+    terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+    kprintf("  ----------------------------------------------------------\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("\n  SYSTEM\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+    kprintf("    help      Show this command reference\n");
+    kprintf("    clear     Clear the screen\n");
+    kprintf("    info      System info (uptime, memory, processes)\n");
+    kprintf("    neofetch  ASCII art system summary\n");
+    kprintf("    version   Print OS version\n");
+    kprintf("    date      Show current tick / uptime as date\n");
+    kprintf("    time      Show uptime in HH:MM:SS\n");
+    kprintf("    history   Show command history\n");
+    kprintf("    color     Change colors:  color <fg> <bg>  (0-15)\n");
+    kprintf("    colors    Show all 16 VGA colors\n");
+    kprintf("    echo      Echo text back\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("\n  FILES\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+    kprintf("    ls        List files in current directory\n");
+    kprintf("    pwd       Print current directory path\n");
+    kprintf("    cd        Change directory:  cd <name>  or  cd ..\n");
+    kprintf("    cat       Show file contents:  cat <file>\n");
+    kprintf("    touch     Create empty file:  touch <name>\n");
+    kprintf("    write     Write text to file:  write <file> <text>\n");
+    kprintf("    edit      Open text editor:  edit <file>\n");
+    kprintf("    mkdir     Create directory:  mkdir <name>\n");
+    kprintf("    rm        Delete file or empty dir:  rm <name>\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("\n  PROCESSES\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+    kprintf("    ps        Quick process list\n");
+    kprintf("    top       Live process viewer (refreshes every 500ms)\n");
+    kprintf("    spawn     Start a kernel task:  spawn <name>\n");
+    kprintf("              names: counter, spinner, ticker, all\n");
+    kprintf("    kill      Stop a process:  kill <pid>\n");
+    kprintf("    meminfo   Show memory usage details\n");
+    kprintf("    syscall   Run all 19 syscalls and report PASS/FAIL\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("\n  APPS\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+    kprintf("    menu      Visual menu (arrow keys)\n");
+    kprintf("    files     File browser\n");
+    kprintf("    reader    Read text files page by page\n");
+    kprintf("    sysmon    System monitor dashboard\n");
+    kprintf("    calc      Calculator:  calc <a> <op> <b>\n");
+    kprintf("    note      Notepad:  note add <text>  /  note list\n");
+    kprintf("    cowsay    ASCII cow says something:  cowsay <text>\n");
+    kprintf("    widgets   Desktop widgets dashboard\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("\n  GAMES\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+    kprintf("    snake     Classic snake (arrow keys, Q to quit)\n");
+    kprintf("    ttt       Tic-tac-toe vs unbeatable CPU (numpad 1-9)\n");
+    kprintf("    ttt2      Tic-tac-toe two-player\n");
+    kprintf("    hangman   Word guessing game\n");
+    kprintf("    rps       Rock paper scissors vs CPU (best of 5)\n");
+    kprintf("    pong      Two-player pong (W/S vs I/K)\n");
+
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_CYAN,VGA_BLACK));kprintf("\n  POWER\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+    kprintf("    reboot    Restart the system\n");
+    kprintf("    shutdown  Halt the CPU\n");
+    kprintf("    exit      Same as shutdown\n");
+    kprintf("    panic     Trigger a kernel panic (demo only)\n");
+    kprintf("\n");
+    terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+    kprintf("  Tip: try  spawn all  then  top  to see preemptive multitasking.\n\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
 }
+
+static void cmd_colors(void){
+    terminal_setcolor(vga_entry_color(VGA_WHITE,VGA_BLACK));
+    kprintf("\n  VGA Color Palette\n");
+    terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+    kprintf("  -----------------\n");
+    const char* names[16] = {
+        "0  black",          "1  blue",           "2  green",         "3  cyan",
+        "4  red",            "5  magenta",        "6  brown",         "7  light grey",
+        "8  dark grey",      "9  light blue",     "10 light green",   "11 light cyan",
+        "12 light red",      "13 light magenta",  "14 yellow",        "15 white"
+    };
+    for(int i=0;i<16;i++){
+        terminal_setcolor(vga_entry_color((uint8_t)i,VGA_BLACK));
+        kprintf("    %s", names[i]);
+        terminal_setcolor(vga_entry_color(VGA_BLACK,(uint8_t)i));
+        kprintf("        ");
+        terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+        kprintf("\n");
+    }
+    kprintf("\n");
+    terminal_setcolor(vga_entry_color(VGA_DARK_GREY,VGA_BLACK));
+    kprintf("  Use:  color <fg> <bg>     example:  color 14 0   (yellow on black)\n");
+    kprintf("  Reset: color 7 0\n\n");
+    terminal_setcolor(vga_entry_color(VGA_LIGHT_GREY,VGA_BLACK));
+}
+
 
 /* ===== NEOFETCH ===== */
 static void cmd_neofetch(void){
@@ -663,7 +740,7 @@ static void execute_command(char* input){
     else if(strcmp(argv[0],"date")==0){outb(0x70,0x00);uint8_t sec=inb(0x71);outb(0x70,0x02);uint8_t min=inb(0x71);outb(0x70,0x04);uint8_t hr=inb(0x71);outb(0x70,0x07);uint8_t day=inb(0x71);outb(0x70,0x08);uint8_t mon=inb(0x71);outb(0x70,0x09);uint8_t yr=inb(0x71);sec=(sec&0xF)+((sec>>4)*10);min=(min&0xF)+((min>>4)*10);hr=(hr&0xF)+((hr>>4)*10);day=(day&0xF)+((day>>4)*10);mon=(mon&0xF)+((mon>>4)*10);yr=(yr&0xF)+((yr>>4)*10);kprintf("\n  20%d-%d-%d %d:%d:%d\n\n",yr,mon,day,hr,min,sec);}
     else if(strcmp(argv[0],"time")==0){uint32_t t=timer_get_ticks(),s=t/100,m=s/60;s%=60;kprintf("\n  %dm %ds\n\n",m,s);}
     else if(strcmp(argv[0],"color")==0){if(argc<3)kprintf("  color <fg> <bg>\n");else{int fg=atoi(argv[1]),bg=atoi(argv[2]);if(fg>=0&&fg<16&&bg>=0&&bg<16){terminal_setcolor(vga_entry_color((uint8_t)fg,(uint8_t)bg));kprintf("  Done!\n");}else kprintf("  0-15!\n");}}
-    else if(strcmp(argv[0],"history")==0)cmd_history_show();
+    else if(strcmp(argv[0],"history")==0)cmd_history_show();else if(strcmp(argv[0],"colors")==0)cmd_colors();
     else if(strcmp(argv[0],"ls")==0)cmd_ls();
     else if(strcmp(argv[0],"pwd")==0)kprintf("  %s\n",fs_pwd());
     else if(strcmp(argv[0],"cd")==0)cmd_cd(argc,argv);
